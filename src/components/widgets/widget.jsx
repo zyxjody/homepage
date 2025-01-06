@@ -15,15 +15,16 @@ const widgetMappings = {
   openmeteo: dynamic(() => import("components/widgets/openmeteo/openmeteo")),
   longhorn: dynamic(() => import("components/widgets/longhorn/longhorn")),
   kubernetes: dynamic(() => import("components/widgets/kubernetes/kubernetes")),
+  stocks: dynamic(() => import("components/widgets/stocks/stocks")),
 };
 
-export default function Widget({ widget }) {
+export default function Widget({ widget, style }) {
   const InfoWidget = widgetMappings[widget.type];
 
   if (InfoWidget) {
     return (
       <ErrorBoundary>
-        <InfoWidget options={widget.options} />
+        <InfoWidget options={{ ...widget.options, style }} />
       </ErrorBoundary>
     );
   }

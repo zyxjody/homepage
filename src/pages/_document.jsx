@@ -4,13 +4,10 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <meta
-          name="description"
-          content="A highly customizable homepage (or startpage / application dashboard) with Docker and service API integrations."
-        />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="manifest" href="/site.webmanifest?v=4" />
-        <link rel="mask-icon" href="/safari-pinned-tab.svg?v=4" color="#1e9cd7" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="manifest" href="/site.webmanifest?v=4" crossOrigin="use-credentials" />
+        <link rel="preload" href="/api/config/custom.css" as="style" />
+        <link rel="stylesheet" href="/api/config/custom.css" /> {/* eslint-disable-line @next/next/no-css-tags */}
       </Head>
       <body>
         <Main />

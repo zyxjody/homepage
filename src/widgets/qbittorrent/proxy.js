@@ -8,12 +8,12 @@ const logger = createLogger("qbittorrentProxyHandler");
 async function login(widget) {
   logger.debug("qBittorrent is rejecting the request, logging in.");
   const loginUrl = new URL(`${widget.url}/api/v2/auth/login`).toString();
-  const loginBody = `username=${encodeURI(widget.username)}&password=${encodeURI(widget.password)}`;
+  const loginBody = `username=${encodeURIComponent(widget.username)}&password=${encodeURIComponent(widget.password)}`;
   const loginParams = {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: loginBody,
-  }
+  };
 
   // eslint-disable-next-line no-unused-vars
   const [status, contentType, data] = await httpProxy(loginUrl, loginParams);
@@ -21,14 +21,14 @@ async function login(widget) {
 }
 
 export default async function qbittorrentProxyHandler(req, res) {
-  const { group, service, endpoint } = req.query;
+  const { group, service, endpoint, index } = req.query;
 
   if (!group || !service) {
     logger.debug("Invalid or missing service '%s' or group '%s'", service, group);
     return res.status(400).json({ error: "Invalid proxy service type" });
   }
 
-  const widget = await getServiceWidget(group, service);
+  const widget = await getServiceWidget(group, service, index);
 
   if (!widget) {
     logger.debug("Invalid or missing widget for service '%s' in group '%s'", service, group);

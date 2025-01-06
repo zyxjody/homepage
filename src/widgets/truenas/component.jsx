@@ -3,35 +3,7 @@ import { useTranslation } from "next-i18next";
 import Container from "components/services/widget/container";
 import Block from "components/services/widget/block";
 import useWidgetAPI from "utils/proxy/use-widget-api";
-
-const processUptime = uptime => {
-
-  const seconds = uptime.toFixed(0);
-
-  const levels = [
-    [Math.floor(seconds / 31536000), 'year'],
-    [Math.floor((seconds % 31536000) / 2592000), 'month'],
-    [Math.floor(((seconds % 31536000) % 2592000) / 86400), 'day'],
-    [Math.floor(((seconds % 31536000) % 86400) / 3600), 'hour'],
-    [Math.floor((((seconds % 31536000) % 86400) % 3600) / 60), 'minute'],
-    [(((seconds % 31536000) % 86400) % 3600) % 60, 'second'],
-  ];
-  
-  for (let i = 0; i< levels.length; i += 1) {
-    const level = levels[i];
-    if (level[0] > 0){
-      return {
-          value: level[0],
-          unit: level[1]
-        }
-      } 
-  }
-
-  return {
-    value: 0,
-    unit: 'second'
-  };
-}
+import Pool from "widgets/truenas/pool";
 
 export default function Component({ service }) {
   const { t } = useTranslation();
@@ -40,9 +12,10 @@ export default function Component({ service }) {
 
   const { data: alertData, error: alertError } = useWidgetAPI(widget, "alerts");
   const { data: statusData, error: statusError } = useWidgetAPI(widget, "status");
+  const { data: poolsData, error: poolsError } = useWidgetAPI(widget, "pools");
 
-  if (alertError || statusError) {
-    const finalError = alertError ?? statusError;
+  if (alertError || statusError || poolsError) {
+    const finalError = alertError ?? statusError ?? poolsError;
     return <Container service={service} error={finalError} />;
   }
 
@@ -55,12 +28,30 @@ export default function Component({ service }) {
       </Container>
     );
   }
-  
+
+  const enablePools = widget?.enablePools && Array.isArray(poolsData) && poolsData.length > 0;
+
   return (
-    <Container service={service}>
-      <Block label="truenas.load" value={t("common.number", { value: statusData.loadavg[0] })} />
-      <Block label="truenas.uptime" value={t('truenas.time', processUptime(statusData.uptime_seconds))} />
-      <Block label="truenas.alerts" value={t("common.number", { value: alertData.pending })} />
-    </Container>
+    <>
+      <Container service={service}>
+        <Block label="truenas.load" value={t("common.number", { value: statusData.loadavg[0] })} />
+        <Block label="truenas.uptime" value={t("common.duration", { value: statusData.uptime_seconds })} />
+        <Block label="truenas.alerts" value={t("common.number", { value: alertData.pending })} />
+      </Container>
+      {enablePools &&
+        poolsData
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((pool) => (
+            <Pool
+              key={pool.id}
+              name={pool.name}
+              healthy={pool.healthy}
+              allocated={pool.allocated}
+              free={pool.free}
+              data={pool.data}
+              nasType={widget?.nasType ?? "scale"}
+            />
+          ))}
+    </>
   );
 }

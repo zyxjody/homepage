@@ -16,14 +16,19 @@ export default function Component({ service }) {
   }
 
   if (!data) {
-    return <Container service={service} />;
+    return (
+      <Container service={service}>
+        <Block label="changedetectionio.diffsDetected" />
+        <Block label="changedetectionio.totalObserved" />
+      </Container>
+    );
   }
 
   const totalObserved = Object.keys(data).length;
   let diffsDetected = 0;
 
   Object.keys(data).forEach((key) => {
-    if (data[key].last_checked === data[key].last_changed) {
+    if (data[key].last_changed > 0 && !data[key].viewed) {
       diffsDetected += 1;
     }
   });
